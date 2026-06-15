@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 
+const SMS_AUTH_URL = 'https://functions.poehali.dev/52d95e3f-be88-4c7c-a33e-db818cc84b0b';
+
 type Step = 'phone' | 'code' | 'name';
 
 interface AuthScreenProps {
@@ -13,6 +15,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const formatPhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -32,18 +35,47 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
+    setError('');
   };
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (phone.replace(/\D/g, '').length < 11) return;
     setLoading(true);
-    setTimeout(() => { setLoading(false); setStep('code'); }, 1200);
+    setError('');
+    try {
+      const res = await fetch(SMS_AUTH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send', phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Ошибка отправки'); return; }
+      setStep('code');
+    } catch {
+      setError('Нет соединения с сервером');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     if (code.length < 4) return;
     setLoading(true);
-    setTimeout(() => { setLoading(false); setStep('name'); }, 1000);
+    setError('');
+    try {
+      const res = await fetch(SMS_AUTH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', phone, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Неверный код'); return; }
+      setStep('name');
+    } catch {
+      setError('Нет соединения с сервером');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFinish = () => {
@@ -81,6 +113,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
                   className="w-full h-13 pl-12 pr-4 py-3.5 rounded-2xl bg-secondary border border-border text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 transition-colors"
                 />
               </div>
+              {error && <p className="text-rose-400 text-sm mb-3 text-center">{error}</p>}
               <button
                 onClick={handleSendCode}
                 disabled={loading || phone.replace(/\D/g, '').length < 11}
@@ -110,7 +143,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
                   className="w-full h-13 pl-12 pr-4 py-3.5 rounded-2xl bg-secondary border border-border text-2xl tracking-[0.4em] text-center placeholder:text-muted-foreground placeholder:text-base placeholder:tracking-normal focus:outline-none focus:border-primary/60 transition-colors"
                 />
               </div>
-              <p className="text-xs text-muted-foreground mb-4 text-center">Введите любые цифры для демо</p>
+              {error && <p className="text-rose-400 text-sm mb-3 text-center">{error}</p>}
               <button
                 onClick={handleVerifyCode}
                 disabled={loading || code.length < 4}

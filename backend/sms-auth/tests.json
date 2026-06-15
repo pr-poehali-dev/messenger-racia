@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Invalid phone",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "send", "phone": "123"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Verify without send",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "verify", "phone": "+79991234567", "code": "1234"},
+      "expectedStatus": 400
+    }
+  ]
+}
