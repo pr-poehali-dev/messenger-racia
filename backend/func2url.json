@@ -1,4 +1,5 @@
 {
+  "oauth-callback": "https://functions.poehali.dev/2d93b4fb-05f8-4542-9611-89fe5e88bb73",
   "sms-auth": "https://functions.poehali.dev/52d95e3f-be88-4c7c-a33e-db818cc84b0b",
   "verify-sms": "https://functions.poehali.dev/ebae3e1e-62f6-41ef-b6e4-f41f7ab48faa",
   "send-sms": "https://functions.poehali.dev/0b0d4a3c-09ff-4351-b242-f851c538a72b"
